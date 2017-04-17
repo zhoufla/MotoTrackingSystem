@@ -1,62 +1,127 @@
 <?php
 /**
- * This file is part of workerman.
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the MIT-LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @author walkor<walkor@workerman.net>
- * @copyright walkor<walkor@workerman.net>
- * @link http://www.workerman.net/
- * @license http://www.opensource.org/licenses/mit-license.php MIT License
- */
+* This file is part of workerman.
+*
+* Licensed under The MIT License
+* For full copyright and license information, please see the MIT-LICENSE.txt
+* Redistributions of files must retain the above copyright notice.
+*
+* @author walkor<walkor@workerman.net>
+* @copyright walkor<walkor@workerman.net>
+* @link http://www.workerman.net/
+* @license http://www.opensource.org/licenses/mit-license.php MIT License
+*/
 
 /**
- * ç”¨äºæ£€æµ‹ä¸šåŠ¡ä»£ç æ­»å¾ªç¯æˆ–è€…é•¿æ—¶é—´é˜»å¡ç­‰é—®é¢˜
- * å¦‚æœå‘ç°ä¸šåŠ¡å¡æ­»ï¼Œå¯ä»¥å°†ä¸‹é¢declareæ‰“å¼€ï¼ˆå»æ‰//æ³¨é‡Šï¼‰ï¼Œå¹¶æ‰§è¡Œphp start.php reload
- * ç„¶åè§‚å¯Ÿä¸€æ®µæ—¶é—´workerman.logçœ‹æ˜¯å¦æœ‰process_timeoutå¼‚å¸¸
- */
+* ÓÃÓÚ¼ì²âÒµÎñ´úÂëËÀÑ­»·»òÕß³¤Ê±¼ä×èÈûµÈÎÊÌâ
+* Èç¹û·¢ÏÖÒµÎñ¿¨ËÀ£¬¿ÉÒÔ½«ÏÂÃædeclare´ò¿ª£¨È¥µô//×¢ÊÍ£©£¬²¢Ö´ĞĞphp start.php reload
+* È»ºó¹Û²ìÒ»¶ÎÊ±¼äworkerman.log¿´ÊÇ·ñÓĞprocess_timeoutÒì³£
+*/
 //declare(ticks=1);
 
 use \GatewayWorker\Lib\Gateway;
+use \Workerman\Worker;
+use \Workerman\Lib\Timer;
+use \Workerman\Protocols\Websocket;
 
 /**
- * ä¸»é€»è¾‘
- * ä¸»è¦æ˜¯å¤„ç† onConnect onMessage onClose ä¸‰ä¸ªæ–¹æ³•
- * onConnect å’Œ onClose å¦‚æœä¸éœ€è¦å¯ä»¥ä¸ç”¨å®ç°å¹¶åˆ é™¤
- */
+* Ö÷Âß¼­
+* Ö÷ÒªÊÇ´¦Àí onConnect onMessage onClose Èı¸ö·½·¨
+* onConnect ºÍ onClose Èç¹û²»ĞèÒª¿ÉÒÔ²»ÓÃÊµÏÖ²¢É¾³ı
+*/
 class Events
 {
-    /**
-     * å½“å®¢æˆ·ç«¯è¿æ¥æ—¶è§¦å‘
-     * å¦‚æœä¸šåŠ¡ä¸éœ€æ­¤å›è°ƒå¯ä»¥åˆ é™¤onConnect
-     * 
-     * @param int $client_id è¿æ¥id
-     */
-    public static function onConnect($client_id) {
-        // å‘å½“å‰client_idå‘é€æ•°æ® 
-        Gateway::sendToClient($client_id, "Hello $client_id\n");
-        // å‘æ‰€æœ‰äººå‘é€
-        Gateway::sendToAll("$client_id login\n");
+
+/**
+ * [onWorkerStart description]
+ * @param  [type] $worker [description]
+ * @return [type]         [description]
+ */
+
+public static $webid = array();
+
+public static function onWorkerStart($worker){
+    //³õÊ¼»¯Ò»¸ö¶¨Ê±Æ÷
+  Timer::add(10,function(){
+  });
+
+}
+
+  /**
+   * µ±¿Í»§¶ËÁ¬½ÓÊ±´¥·¢
+   * Èç¹ûÒµÎñ²»Ğè´Ë»Øµ÷¿ÉÒÔÉ¾³ıonConnect
+   * 
+   * @param int $client_id Á¬½Óid
+   */
+  public static function onConnect($client_id)
+  {
+
+   echo $_SERVER['GATEWAY_PORT'];
+   echo "\r\n";
+ //  echo $client_id;
+
+  //ÅĞ¶Ïµ±Ç°¿Í»§¶ËÊÇ·ñÁ¬µÄÊÇWebSocket¶Ë¿Ú
+  //Èç¹ûÊÇÇ°¶Ë¶Ë¿ÚÔò½«¸Ãclientid´æÈëWEBIDÖĞ
+   if ( $_SERVER['GATEWAY_PORT']=="8099") {
+  //  echo $client_id;
+    Events::$webid[]=$client_id;
+  }
+
+
+      // Ïòµ±Ç°client_id·¢ËÍÊı¾İ 
+ //   Gateway::sendToClient($client_id, "Hello $client_id\r\n");
+      // ÏòËùÓĞÈË·¢ËÍ
+  //  Gateway::sendToAll("$client_id login\r\n");
+
+}
+
+ /**
+  * µ±¿Í»§¶Ë·¢À´ÏûÏ¢Ê±´¥·¢
+  * ½ÓÊÕµ½GPS·¢À´µÄÏûÏ¢ºó£¬½âÎöĞÅÏ¢
+  * @param int $client_id Á¬½Óid
+  * @param mixed $message ¾ßÌåÏûÏ¢
+  */
+ public static function onMessage($client_id, $message)
+ {
+
+    //Èç¹ûµ±Ç°¼àÌıµÄ¶Ë¿ÚÎª8282£¬±íÊ¾¸ÃĞÅÏ¢ÓÉGPSÖÕ¶Ë·¢À´
+   if ( $_SERVER['GATEWAY_PORT']=="8282") {
+
+  //½âÎö$message
+  //function doSomething();
+
+  //½«×ø±êĞÅÏ¢·¢ÏòÇ°¶Ë½çÃæ
+    foreach (Events::$webid as $key => $value) {
+    //echo "Öµ'{$value}'µÄ¼üÊÇ$key<br>";
+      Gateway::sendToClient($value,$message);
     }
-    
-   /**
-    * å½“å®¢æˆ·ç«¯å‘æ¥æ¶ˆæ¯æ—¶è§¦å‘
-    * @param int $client_id è¿æ¥id
-    * @param mixed $message å…·ä½“æ¶ˆæ¯
-    */
-   public static function onMessage($client_id, $message) {
-        // å‘æ‰€æœ‰äººå‘é€ 
-        Gateway::sendToAll("$client_id said $message");
-   }
-   
-   /**
-    * å½“ç”¨æˆ·æ–­å¼€è¿æ¥æ—¶è§¦å‘
-    * @param int $client_id è¿æ¥id
-    */
-   public static function onClose($client_id) {
-       // å‘æ‰€æœ‰äººå‘é€ 
-       GateWay::sendToAll("$client_id logout");
-   }
+
+  }else{
+    //´¦ÀíÇ°¶Ë·¢À´µÄÃüÁî
+    //
+    //  Gateway::sendToClient($client_id,$message);
+  }
+
+      // ÏòËùÓĞÈË·¢ËÍ 
+      // Gateway::sendToAll("ÊÕµ½ÁË $client_id ·¢À´µÄÏûÏ¢ $message\r\n");
+
+  if ($message=="q") {
+    Gateway::closeClient($client_id);
+  }
+  echo $message;
+  echo "\r\n";
+
+     // $ws::onConnect($connection,$message);
+}
+
+ /**
+  * µ±ÓÃ»§¶Ï¿ªÁ¬½ÓÊ±´¥·¢
+  * @param int $client_id Á¬½Óid
+  */
+ public static function onClose($client_id)
+ {
+     // ÏòËùÓĞÈË·¢ËÍ 
+  // GateWay::sendToAll("$client_id logout\r\n");
+ }
+
 }
